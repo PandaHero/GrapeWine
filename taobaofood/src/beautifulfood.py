@@ -11,7 +11,6 @@ import re
 from bs4 import BeautifulSoup
 from pyquery import PyQuery as pq
 from selenium.common.exceptions import TimeoutException
-#from urllib.parse import urlencode 
 #获取浏览器驱动
 browser = webdriver.Chrome()
 browser_wait = WebDriverWait(browser, 10)
@@ -24,9 +23,10 @@ def search():
 #    获取输入框和点击按钮
         editText = browser_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#q")))
         button = browser_wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#J_TSearchForm > div.search-button > button")))
-        editText.send_keys("美食")
+        editText.send_keys("红酒")
         button.click()
         total_page = browser_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#mainsrp-pager > div > div > div > div.total"))).text
+        print(total_page)
         return total_page
     except TimeoutException:
         return search()
