@@ -59,17 +59,38 @@ def get_goods_brand():
 
 def get_goods_brand_url(brand_name, url_quote_name):
     url = "http://s.taobao.com/search?q=%E7%BA%A2%E9%85%92&ppath=" + str(url_quote_name)
+    # print(url)
     return url
 
+
 def parse_goods_brand(url):
-    browser.close()
+    total_page = browser_wait.until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "#mainsrp-pager > div > div > div > div.total"))).text
+    for i in range(int(total_page[1:-2])):
+        num=44*(1+i)
+        goods_brand_url=url+"&s="+str(num)
+        browser.get(goods_brand_url)
+        # 判断页面是否加载完毕
+        browser_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#mainsrp-itemlist .items .item")))
+        html=browser.page_source
+        doc=pq(html)
+        items = doc("#mainsrp-itemlist .items .item").items()
+        products = []
+        for item in items:
+            #产品属性
+            product = {"image": item.find('.pic .img').attr("data-src"), "price": item.find('.price').text(),
+                       "deal": item.find('.deal-cnt').text()[:-3], 'title': item.find('.title').text(),
+                       "shop": item.find(".shop").text(),
+                       "location":item.find(".location").text()}
+            products.append(product)
+        return products
+
 def main():
     search()
     for brand_name, url_quote_name in get_goods_brand():
-        url=get_goods_brand_url(brand_name, url_quote_name)
-        print(url)
-        browser.get(url)
-
+        url = get_goods_brand_url(brand_name, url_quote_name)
+        product=parse_goods_brand(url)
+        print(product)
 
 
 if __name__ == '__main__':

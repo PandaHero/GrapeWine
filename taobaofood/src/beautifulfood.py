@@ -51,14 +51,15 @@ def get_goods_url():
     bs_obj = BeautifulSoup(html, "lxml")
     title_html = bs_obj.find_all("div", {"class":"row row-2 title"})
 #    print(title_html, type(title_html))
-    
+    urls=[]
     for title_content in title_html:
         title_url = str(title_content.a["href"])
         if "http" in title_url:
             url = title_url
         else:
             url = "https:" + title_url
-        yield url
+        urls.append({"url":url})
+    return urls
 def get_contents():
 #    判断items(每一个宝贝)是否加载成功
     browser_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#mainsrp-itemlist .items .item")))
@@ -81,17 +82,13 @@ def main():
     page_number = int(re.search("\d+", total_page).group())
 #    print(page_number)
     products = []
+    urls=[]
     for i in range(1, page_number + 1):
         next_page(i)
-#        products.append(get_contents())
-#        print(get_contents())
-#    print(products,len(products))
-#    for i in products:
-#        print(i)
         products.append(get_contents())
-        url=get_goods_url()
-        for i in url:
-            print(i)
+        # 把每个商品详情页链接放入urls中
+        urls.append(get_goods_url())
+
     with open("C:\\Users\\chen\\Desktop\\tbData.txt", "w+", encoding="utf-8") as file:
 #        for goods in products:
 #            print(goods,type(goods))
