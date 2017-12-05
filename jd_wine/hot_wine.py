@@ -6,6 +6,8 @@ import time
 from pyquery import PyQuery as pq
 from bs4 import BeautifulSoup
 import requests
+import re
+import csv
 
 # 获取浏览器驱动
 browser = webdriver.Chrome()
@@ -28,6 +30,8 @@ def search():
 # 传入页码，并返回商品列表
 def next_page(page_num):
     print("正在翻第" + str(page_num) + "页")
+    # 判断items(每一个宝贝)是否加载成功
+    # browser_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#ml-wrap .gl-warp .gl-item")))
     # 获取页面右上角点击按钮
     button = browser_wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#J_topPage > a.fp-next")))
     button.click()
@@ -48,41 +52,140 @@ def next_page(page_num):
         goods_commit = goods.find("div", {"class": "p-commit"})
         details = goods_details.a["title"]
         url = goods_url.a["href"]
-        price = goods_price.get_text()
-        commits = goods_commit.get_text()
+        price = goods_price.get_text().replace("\n", "").replace("￥", "").replace(" ", "")
+        commit = goods_commit.get_text().replace("\n", "").replace("条评价", "")
+        if "万" in commit:
+            commits = float(re.search("\d", commit).group()) * 10000
+            # product = {"good_title": details, "good_url": url, "good_price": price, "good_commit": commits}
+        else:
+            commits = commit
         product = {"good_title": details, "good_url": url, "good_price": price, "good_commit": commits}
         goods_info.append(product)
-        print(details, url, price, commits)
+        # print(details, url, price, commits)
     return goods_info
 
 
 # 解析每个商品url的信息，并返回商品详情页的数据：品牌、原产国、原料、产区等等
 def get_details_info(url):
-    product_details_info = []
+    # product_details_info = []
     product_details_dic = {}
     req = requests.get(url)
-    req.encoding = "utf-8"
+    print(url)
+    # req.encoding = "utf-8"
     soup = BeautifulSoup(req.text, "lxml")
     # 获取商品的详细信息
     good_parameter = soup.find("div", {"class": "p-parameter"})
     parameter_brand = good_parameter.find("ul", {"id": "parameter-brand"}, {"class": "p-parameter-list"})
-    brand = parameter_brand.find("li")["title"]
-    p_parameter_list = good_parameter.find("ul", {"class": "parameter2 p-parameter-list"})
+    # brand = parameter_brand.find("li")["title"]
+    p_parameter_list = good_parameter.find("ul", {"class": "parameter2"})
     li_parameter_list = p_parameter_list.find_all("li")
     # 把商品介绍的详情信息添加到product_details_info
     for li_parameter in li_parameter_list:
-        li_split = li_parameter.get_text().split(":")
-        product_details_dic[li_split[0]] = li_split[1]
+        li_split = str(li_parameter.get_text()).split("：")
+        product_details_dic[li_split[0]] = li_split[-1]
     # 把商品的规格与包装信息添加到product_details_info
     ptable = soup.find("div", {"class": "Ptable"})
-    ptable_dl = ptable.find("dl")
-    ptable_dt = ptable_dl.find_all("dt")
-    ptable_dd = ptable_dl.find_all("dd")
-    for i in range(len(ptable_dt)):
-        product_details_dic[ptable_dt[i].get_text()] = ptable_dd[i].get_text()
+    if ptable:
+        ptable_dl = ptable.find("dl")
+        ptable_dt = ptable_dl.find_all("dt")
+        ptable_dd = ptable_dl.find_all("dd")
+        for i in range(len(ptable_dt)):
+            product_details_dic[ptable_dt[i].get_text()] = ptable_dd[i].get_text()
+    return product_details_dic
 
 
-if __name__ == '__main__':
+def write_to_csv(goods):
+    with open(r"C:\Users\chen\Desktop\jd_wine.csv", "w+", newline="") as file:
+        tem = 1
+        writer = csv.writer(file)
+        writer.writerow(
+            ["goods_name", "goods_weight", "goods_price", "goods_commits", "goods_location", "acidity", "odor_type",
+             "is_import",
+             "taste", "color",
+             "character", "capacity", "sweetness", "classify", "packaging", "type", "grape_variety", "brand",
+             "origin_country", "raw_material", "producing_area", "year", "alcohol", "expiration_date", "fit_people",
+             "storage"])
+        for data in goods:
+            goods_name = data["商品名称"]
+            goods_price = data["good_price"]
+            goods_commits = data["good_commit"]
+            if "商品毛重" in data:
+                goods_weight = data["商品毛重"]
+            else:
+                goods_weight = "无"
+            if "商品产地" in data :
+                goods_location = data["商品产地"]
+            else:
+                goods_location="无"
+            if "酸度" in data:
+                acidity = data["酸度"]
+            else :
+                acidity="无"
+            if "香型" in data:
+                odor_type = data["香型"]
+            else:
+                odor_type="无"
+            if "国产/进口" in data:
+                is_import = data["国产/进口"]
+            else:
+                is_import="无"
+            if "口感" in data:
+                taste = data["口感"]
+            else:
+                taste=0
+            if "颜色" in data:
+                color = data["颜色"]
+            else:
+                color="无"
+            if "特性" in data:
+                character = data["特性"]
+            else:
+                character="无"
+            capacity = data["容量"]
+            sweetness = data["甜度"]
+            classify = data["分类"]
+            packaging = data["包装"]
+            type = data["类型"]
+            grape_variety = data["葡萄品种"]
+            brand = data["品牌"]
+            origin_country = data["原产国"]
+            raw_material = data["原料"]
+            producing_area = data["产区"]
+            year = data["年份"]
+            alcohol = data["酒精度"]
+            expiration_date = data["保质期"]
+            fit_people = data["适用人群"]
+            storage = data["储存方法"]
+
+            goods_info = [goods_name, goods_weight, goods_price, goods_commits, goods_location, acidity, odor_type,
+                          is_import,
+                          taste, color,
+                          character, capacity, sweetness, classify, packaging, type, grape_variety, brand,
+                          origin_country, raw_material, producing_area, year, alcohol, expiration_date, fit_people,
+                          storage]
+            writer.writerow(goods_info)
+            print("第" + str(tem) + "次写入成功")
+            tem += 1
+
+    print("写入完毕")
+
+
+def main():
     page_num = int(search())
     for num in range(1, page_num + 1):
         goods_info = next_page(num)
+        for goods in goods_info:
+            if "https" not in goods["good_url"]:
+                good_url = goods["good_url"]
+                goods["good_url"] = "http:" + str(good_url)
+            product_details_dic = get_details_info(goods["good_url"])
+            # print(product_details_dic)
+            for key, value in product_details_dic.items():
+                goods[key] = value
+            # print(goods)
+            yield goods
+
+
+if __name__ == '__main__':
+    goods = main()
+    write_to_csv(goods)
