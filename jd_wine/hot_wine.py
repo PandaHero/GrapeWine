@@ -113,49 +113,104 @@ def write_to_csv(goods):
                 goods_weight = data["商品毛重"]
             else:
                 goods_weight = "无"
-            if "商品产地" in data :
+            if "商品产地" in data:
                 goods_location = data["商品产地"]
             else:
-                goods_location="无"
+                goods_location = "无"
             if "酸度" in data:
                 acidity = data["酸度"]
-            else :
-                acidity="无"
+            else:
+                acidity = "无"
             if "香型" in data:
                 odor_type = data["香型"]
             else:
-                odor_type="无"
+                odor_type = "无"
             if "国产/进口" in data:
                 is_import = data["国产/进口"]
             else:
-                is_import="无"
+                is_import = "无"
             if "口感" in data:
                 taste = data["口感"]
             else:
-                taste=0
+                taste = 0
             if "颜色" in data:
                 color = data["颜色"]
             else:
-                color="无"
+                color = "无"
             if "特性" in data:
                 character = data["特性"]
             else:
-                character="无"
-            capacity = data["容量"]
-            sweetness = data["甜度"]
-            classify = data["分类"]
-            packaging = data["包装"]
-            type = data["类型"]
-            grape_variety = data["葡萄品种"]
-            brand = data["品牌"]
-            origin_country = data["原产国"]
-            raw_material = data["原料"]
-            producing_area = data["产区"]
-            year = data["年份"]
-            alcohol = data["酒精度"]
-            expiration_date = data["保质期"]
-            fit_people = data["适用人群"]
-            storage = data["储存方法"]
+                character = "无"
+            if "容量" in data:
+                capacity = data["容量"]
+            else:
+                capacity = "无"
+            if "甜度" in data:
+                sweetness = data["甜度"]
+            else:
+                sweetness = "无"
+            if "分类" in data:
+                classify = data["分类"]
+            else:
+                classify = "无"
+            if "包装" in data:
+                packaging = data["包装"]
+            else:
+                packaging = "无"
+            if "类型" in data:
+                type = data["类型"]
+            else:
+                type = "无"
+            if "葡萄品种" in data:
+                grape_variety = data["葡萄品种"]
+            else:
+                grape_variety = "无"
+            if "品牌" in data:
+
+                brand = data["品牌"]
+            else:
+                brand = "无"
+            if "原产国" in data:
+
+                origin_country = data["原产国"]
+            else:
+                origin_country = "无"
+            if "原料" in data:
+
+                raw_material = data["原料"]
+            else:
+                raw_material = "无"
+            if "产区" in data:
+
+                producing_area = data["产区"]
+            else:
+                producing_area = "无"
+            if "年份" in data:
+
+                year = data["年份"]
+            else:
+                year = "无"
+            if "酒精度" in data:
+
+                alcohol = data["酒精度"]
+            else:
+                alcohol = "无"
+            if "保质期" in data:
+
+                expiration_date = data["保质期"]
+            else:
+                expiration_date = "无"
+            if "适用人群" in data:
+
+                fit_people = data["适用人群"]
+            else:
+
+            fit_people = "无"
+            if "储存方法" in data:
+
+                storage = data["储存方法"]
+            else:
+                storage = "无"
 
             goods_info = [goods_name, goods_weight, goods_price, goods_commits, goods_location, acidity, odor_type,
                           is_import,
