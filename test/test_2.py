@@ -1,6 +1,4 @@
-import queue
-# 创建一个队列a
-a=queue.Queue()
-a.put("hello world")
-a.task_done()
-print(a.get())
+import csv
+with open(r"C:\Users\chen\Desktop\欧盟微博关键字.csv","r+") as file:
+    for line in csv.reader(file):
+        print(line)
