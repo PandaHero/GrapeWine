@@ -205,7 +205,7 @@ def write_to_csv(goods):
                 fit_people = data["适用人群"]
             else:
 
-            fit_people = "无"
+                fit_people = "无"
             if "储存方法" in data:
 
                 storage = data["储存方法"]
