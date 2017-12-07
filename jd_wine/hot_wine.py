@@ -12,6 +12,7 @@ import csv
 # 获取浏览器驱动
 browser = webdriver.Chrome()
 browser_wait = WebDriverWait(browser, 10)
+# 京东商品列表表头
 headers = {"Accept-Encoding": "gzip, deflate, sdch, br",
            "Accept-Language": "zh-CN,zh;q=0.8",
            "Connection": "keep-alive",
@@ -59,6 +60,7 @@ def next_page(page_num):
         data_sku = item["data-sku"]
         show_item = show_item + str(data_sku) + ","
     show_items = show_item[:-2]
+    # 剩下的30个商品item的url获取网页源码并解析
     url = "https://search.jd.com/s_new.php?keyword=%E7%BA%A2%E9%85%92&enc=utf-8&" + "page=" + str(
         int(2 * page_num)) + "&scrolling=y&show_items=" + str(show_items)
     req = requests.get(url, headers=headers)
@@ -67,6 +69,7 @@ def next_page(page_num):
     # print(list_1)
     lists = goodsList.find_all("li", {"class": "gl-item"})
     # print(lists)
+    # 把剩下的30个商品items添加到lists列表中
     lists.extend(list_1)
     goods_info = []
     for goods in lists:
@@ -93,29 +96,33 @@ def next_page(page_num):
 def get_details_info(url):
     # product_details_info = []
     product_details_dic = {}
-    req = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"}
+    req = requests.get(url, headers=headers)
     print(url)
-    # req.encoding = "utf-8"
-    soup = BeautifulSoup(req.text, "lxml")
-    # 获取商品的详细信息
-    good_parameter = soup.find("div", {"class": "p-parameter"})
-    # parameter_brand = good_parameter.find("ul", {"id": "parameter-brand"}, {"class": "p-parameter-list"})
-    # brand = parameter_brand.find("li")["title"]
-    if good_parameter:
-        p_parameter_list = good_parameter.find("ul", {"class": "parameter2"})
-        li_parameter_list = p_parameter_list.find_all("li")
-        # 把商品介绍的详情信息添加到product_details_info
-        for li_parameter in li_parameter_list:
-            li_split = str(li_parameter.get_text()).split("：")
-            product_details_dic[li_split[0]] = li_split[-1]
-    # 把商品的规格与包装信息添加到product_details_info
-    ptable = soup.find("div", {"class": "Ptable"})
-    if ptable:
-        ptable_dl = ptable.find("dl")
-        ptable_dt = ptable_dl.find_all("dt")
-        ptable_dd = ptable_dl.find_all("dd")
-        for i in range(len(ptable_dt)):
-            product_details_dic[ptable_dt[i].get_text()] = ptable_dd[i].get_text()
+    if req.status_code == 200:
+        # req.encoding = "utf-8"
+        soup = BeautifulSoup(req.text, "lxml")
+        # 获取商品的详细信息
+        good_parameter = soup.find("div", {"class": "p-parameter"})
+        # parameter_brand = good_parameter.find("ul", {"id": "parameter-brand"}, {"class": "p-parameter-list"})
+        # brand = parameter_brand.find("li")["title"]
+        if good_parameter:
+            p_parameter_list = good_parameter.find("ul", {"class": "parameter2"})
+            print(p_parameter_list)
+            li_parameter_list = p_parameter_list.find_all("li")
+            # 把商品介绍的详情信息添加到product_details_info
+            for li_parameter in li_parameter_list:
+                li_split = str(li_parameter.get_text()).split("：")
+                product_details_dic[li_split[0]] = li_split[-1]
+            # 把商品的规格与包装信息添加到product_details_info
+            ptable = soup.find("div", {"class": "Ptable"})
+            if ptable:
+                ptable_dl = ptable.find("dl")
+                ptable_dt = ptable_dl.find_all("dt")
+                ptable_dd = ptable_dl.find_all("dd")
+                for i in range(len(ptable_dt)):
+                    product_details_dic[ptable_dt[i].get_text()] = ptable_dd[i].get_text()
     return product_details_dic
 
 
@@ -131,9 +138,18 @@ def write_to_csv(goods):
              "origin_country", "raw_material", "producing_area", "year", "alcohol", "expiration_date", "fit_people",
              "storage"])
         for data in goods:
-            goods_name = data["商品名称"]
-            goods_price = data["good_price"]
-            goods_commits = data["good_commit"]
+            if "商品名称" in data:
+                goods_name = data["商品名称"]
+            else:
+                goods_name = "无"
+            if "good_price" in data:
+                goods_price = data["good_price"]
+            else:
+                goods_price = "无"
+            if "good_commit" in data:
+                goods_commits = data["good_commit"]
+            else:
+                goods_commits = "无"
             if "商品毛重" in data:
                 goods_weight = data["商品毛重"]
             else:
