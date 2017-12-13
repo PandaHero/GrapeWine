@@ -1,22 +1,14 @@
-from selenium import webdriver
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
-import time
 import re
 import requests
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+import time
 
-# 获取浏览器驱动
-driver = webdriver.Chrome()
-# Load页面需要一段时间，设置一个默认等待时间
-driver_wait = WebDriverWait(driver, 10)
-
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"}
-
-
-# 进入主界面，key:商品名称
+driver=webdriver.Chrome()
+driver_wait=WebDriverWait(driver,10)
 def search(key):
     driver.get("http://www.manmanbuy.com/")
     editText = driver_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#skey")))
@@ -31,7 +23,7 @@ def search(key):
 
 def next_page(page_num):
     # 休息5秒钟跳转到另一页
-    # time.sleep(3)
+    time.sleep(3)
     try:
         editText = driver_wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#pagenum")))
         button = driver_wait.until(
@@ -73,16 +65,7 @@ def get_goods_lists():
             goods_comment = "无"
 
         goods_mall = mall_html.find("a", {"class": "shenqingGY"}).get_text().replace(" ", "")
-        # goods_url = title_html.find("a", {"class": "shenqingGY"})["href"]
-        if "天猫" in goods_mall:
-            goods_url = title_html.find("a", {"class": "shenqingGY"})["href"]
-            goods_info.append({"good_url": goods_url})
-        elif "京东" in goods_mall:
-            num = goods.div["sku"]
-            goods_url = "https://item.jd.com/" + str(num) + ".html"
-            goods_info.append({"good_url": goods_url})
-            print(goods_url)
-        # goods_info.append({"good_url": goods_url})
+        goods_url = title_html.find("a", {"class": "shenqingGY"})["href"]
         goods_mode = mall_html.find("p", {"class", "AreaZY"}).get_text()
         goods_info.append({"goods_title": goods_title})
         goods_info.append({"goods_price": goods_price})

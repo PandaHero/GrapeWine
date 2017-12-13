@@ -1,85 +1,47 @@
-# coding = utf-8
-import random
-import time
-import urllib.error
-import urllib.request
-import urllib.request
-
-import gevent
+from urllib.request import urlopen
+import requests
 from bs4 import BeautifulSoup
-from gevent import monkey
-
-home = "http://www.xicidaili.com/wt/"
-first_proxy_list = []
-end_proxy_list = []
-# proxy_support = urllib.request.ProxyHandler({"http": "http://10.10.1.10:3128", "https": "http://10.10.1.10:1080"})
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36"
-}
-monkey.patch_all()
+import re
 
 
-def test_proxy(proxy_key):
-    # for i in range(len(first_proxy_list)):
-    # proxy_support = urllib.request.ProxyHandler({"http":proxy_list[i]})
-    # print(proxy_key)
-    proxy = {"http": proxy_key}
-    url = "https://www.baidu.com/"
+def get_goods_info():
+    goods_info = []
+    proxy = requests.get("http://127.0.0.1:5010/get/").text
+    proxies = {"http": "http://" + str(proxy)}
+    content = requests.get(
+        "http://s.manmanbuy.com/Default.aspx?PageID=1&smallclass=0&ppid=0&siteid=&searchmode=0&f1=0&f2=0&f3=0&f4=0&f5=0&f6=0&price1=0&price2=0&orderby=score&iszy=0&istmall=0&zdj=0&key=%b0%c2%c4%aa%cb%b9-%ce%f7%c0%ad%ba%ec%c6%cf%cc%d1%be%c6+750ml%2f%c6%bf&v=&k=&min=&max=&w=&w2=&ft=&ft2=&distype=0",
+        proxies=proxies)
+    soup = BeautifulSoup(content, "lxml")
+    goods_lists = soup.find_all("div", {"class": "bjlineSmall"})
+    for goods in goods_lists:
+        print(goods)
+        print("--------------------------------------------")
+        title_html = goods.find("div", {"class": "title"})
+        price_html = goods.find("div", {"class": "cost"})
+        comment_html = goods.find("div", {"class": "comment"})
+        mall_html = goods.find("div", {"class": "mall"})
+        goods_title = title_html.find("a", {"class": "shenqingGY"}).get_text().strip(" ")
+        goods_price = price_html.find("span", {"class": "listpricespan"}).get_text().strip(" ")
+        if comment_html:
+            goods_comment = re.search("[1-9]\d*", str(comment_html.get_text()))
+            if goods_comment:
+                goods_comment = goods_comment.group(0)
+        else:
+            goods_comment = "无"
 
-    proxy_support = urllib.request.ProxyHandler(proxy)
-    opener = urllib.request.build_opener(proxy_support)
-    urllib.request.install_opener(opener)
-    res = urllib.request.Request(url=url, headers=headers)
-    try:
-        response = urllib.request.urlopen(res, timeout=5)
-        if response.code == 200:
-            end_proxy_list.append(proxy_key)
-    except Exception as e:
-        print("error:", e)
-    # except socket.timeout as e:
-    #     print("This proxy is socket.timeout")
-    # except urllib.error.URLError as e:
-    #     print("This proxy is timeout")
-
-
-def get_proxy_list():
-    for i in range(20):
-        url = home + str(i + 1)
-        # print(url)
-        # proxy_support = urllib.request.ProxyHandler({"http":"123.125.5.100:3128"})
-        # opener = urllib.request.build_opener(proxy_support)
-        # urllib.request.install_opener(opener)
-        res = urllib.request.Request(url=url, headers=headers)
-        response = urllib.request.urlopen(res, timeout=20).read().decode()
-        soup = BeautifulSoup(response, 'html.parser')
-        # print(response)
-        content = soup.find_all("table", attrs={"id": "ip_list"})[0].find_all('tr')[1:]
-        for i in range(len(content)):
-            result = content[i].find_all('td')
-            proxy_enum = result[1].text + ":" + result[2].text
-            print(proxy_enum)
-            first_proxy_list.append(proxy_enum)
-        time.sleep(random.randint(120, 240))
+        goods_mall = mall_html.find("a", {"class": "shenqingGY"}).get_text().replace(" ", "")
+        goods_url = title_html.find("a", {"class": "shenqingGY"})["href"]
+        goods_mode = mall_html.find("p", {"class", "AreaZY"}).get_text()
+        goods_info.append({"goods_title": goods_title})
+        goods_info.append({"goods_url": goods_url})
+        goods_info.append({"goods_price": goods_price})
+        goods_info.append({"goods_comment": goods_comment})
+        goods_info.append({"goods_mall": goods_mall})
+        goods_info.append({"goods_mode": goods_mode})
+    if len(goods_info) == 0:
+        pass
 
 
-def join_gevent(first_proxy_list, gevent_list):
-    for i in range(len(first_proxy_list)):
-        gevent_list.append(gevent.spawn(test_proxy, first_proxy_list[i]))
 
-
-def main():
-    gevent_list = []
-    get_proxy_list()
-    with open("proxy_first.txt", 'a', encoding='utf-8') as f:
-        for item in first_proxy_list:
-            f.write(item + '\n')
-    join_gevent(first_proxy_list, gevent_list)
-    gevent.joinall(gevent_list)
-    # print(end_proxy_list)
-    with open("proxy_end.txt", 'a', encoding='utf-8') as f:
-        for item in end_proxy_list:
-            f.write(item + '\n')
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    get_goods_info()
