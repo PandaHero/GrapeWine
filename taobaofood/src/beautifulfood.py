@@ -3,14 +3,14 @@ Created on 2017-11-7
 
 @author: chen
 '''
+from bs4 import BeautifulSoup
+from pyquery import PyQuery as pq
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import re
-from bs4 import BeautifulSoup
-from pyquery import PyQuery as pq
-from selenium.common.exceptions import TimeoutException
 #获取浏览器驱动
 browser = webdriver.Chrome()
 browser_wait = WebDriverWait(browser, 10)
@@ -51,7 +51,7 @@ def get_goods_url():
     bs_obj = BeautifulSoup(html, "lxml")
     title_html = bs_obj.find_all("div", {"class":"row row-2 title"})
 #    print(title_html, type(title_html))
-    urls=[]
+    urls = []
     for title_content in title_html:
         title_url = str(title_content.a["href"])
         if "http" in title_url:
@@ -82,7 +82,7 @@ def main():
     page_number = int(re.search("\d+", total_page).group())
 #    print(page_number)
     products = []
-    urls=[]
+    urls = []
     for i in range(1, page_number + 1):
         next_page(i)
         products.append(get_contents())
